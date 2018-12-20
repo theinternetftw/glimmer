@@ -8,8 +8,8 @@ import (
 	"golang.org/x/exp/shiny/driver"
 	"golang.org/x/exp/shiny/screen"
 	"golang.org/x/image/math/f64"
-	"golang.org/x/mobile/event/lifecycle"
 	"golang.org/x/mobile/event/key"
+	"golang.org/x/mobile/event/lifecycle"
 	"golang.org/x/mobile/event/paint"
 	"golang.org/x/mobile/event/size"
 )
@@ -28,11 +28,11 @@ type WindowState struct {
 	Pix []byte
 
 	keyCodeArray [256]bool
-	keyCodeMap map[key.Code]bool
+	keyCodeMap   map[key.Code]bool
 	keyCharArray [256]bool
-	keyCharMap map[rune]bool
+	keyCharMap   map[rune]bool
 
-	eventQueue screen.EventDeque
+	eventQueue    screen.EventDeque
 	drawRequested bool
 }
 
@@ -48,6 +48,7 @@ func (s *WindowState) CharIsDown(c rune) bool {
 	}
 	return s.keyCharMap[c]
 }
+
 // CodeIsDown returns the key state for that keyCode
 func (s *WindowState) CodeIsDown(c key.Code) bool {
 	if c < 256 {
@@ -81,13 +82,17 @@ func (s *WindowState) RequestDraw() {
 	}
 }
 
-type drawRequest struct {}
+type drawRequest struct{}
 
 // InitDisplayLoop creates a window and starts event loop
 func InitDisplayLoop(title string, windowWidth, windowHeight, frameWidth, frameHeight int, updateLoop func(*WindowState)) {
-	driver.Main(func (s screen.Screen) {
+	driver.Main(func(s screen.Screen) {
 
-		w, err := s.NewWindow(&screen.NewWindowOptions{windowWidth, windowHeight, title})
+		w, err := s.NewWindow(&screen.NewWindowOptions{
+			Width: windowWidth,
+			Height: windowHeight,
+			Title: title,
+		})
 		if err != nil {
 			panic(err)
 		}
@@ -103,9 +108,9 @@ func InitDisplayLoop(title string, windowWidth, windowHeight, frameWidth, frameH
 		}
 
 		windowState := WindowState{
-			Width: frameWidth,
-			Height: frameHeight,
-			Pix: make([]byte, 4*frameWidth*frameHeight),
+			Width:      frameWidth,
+			Height:     frameHeight,
+			Pix:        make([]byte, 4*frameWidth*frameHeight),
 			eventQueue: w,
 			keyCodeMap: map[key.Code]bool{},
 			keyCharMap: map[rune]bool{},
@@ -157,11 +162,11 @@ func InitDisplayLoop(title string, windowWidth, windowHeight, frameWidth, frameH
 				scaleFact = float64(int(scaleFact))
 				newWidth := int(scaleFact * float64(tex.Bounds().Max.X))
 				centerX := float64(szRect.Max.X/2 - newWidth/2)
-				src2dst := f64.Aff3 {
+				src2dst := f64.Aff3{
 					float64(int(scaleFact)), 0, centerX,
 					0, float64(int(scaleFact)), 0,
 				}
-				identTrans := f64.Aff3 {
+				identTrans := f64.Aff3{
 					1, 0, 0,
 					0, 1, 0,
 				}
