@@ -8,8 +8,9 @@ module github.com/theinternetftw/glimmer
 
 require (
 	github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802
-	golang.org/x/exp v0.0.0-20180321215751-8460e604b9de
-	golang.org/x/image v0.0.0-20170217221721-791b6153280a
-	golang.org/x/mobile v0.0.0-20180510183109-274da161099d
-	golang.org/x/sys v0.0.0-20170217003442-075e574b89e4
+	github.com/hajimehoshi/oto v0.2.1
+	golang.org/x/exp v0.0.0-20180710024300-14dda7b62fcd
+	golang.org/x/image v0.0.0-20180708004352-c73c2afc3b81
+	golang.org/x/mobile v0.0.0-20180806140643-507816974b79
+	golang.org/x/sys v0.0.0-20180806082429-34b17bdb4300
 )
