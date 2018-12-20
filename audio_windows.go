@@ -55,15 +55,6 @@ func init() {
 	waveOutUnprepareHeader = winmm.MustFindProc("waveOutUnprepareHeader")
 }
 
-// NOTE: Right now this is pretty much designed around
-// the "submit blocks" style of audio api.
-//
-// Transition to circular buffer?
-//
-// For "submit blocks" underlying implementations
-// you'd just move the cursor forward however many
-// blocks are ready, copy that data and submit it.
-
 type audioOutput struct {
 	ab *AudioBuffer
 
