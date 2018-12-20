@@ -1,61 +1,50 @@
 // +build !windows
+// +build !linux
 
 package glimmer
 
 import "time"
 
-// AudioBuffer represents a fake audio implementation
-type AudioBuffer struct {
-	SamplesPerSecond uint32
-	BitsPerSample    uint32
-	ChannelCount     uint32
-	BlockSize        uint32
-	BlockCount       uint32
+type audioOutput struct {
+	ab *AudioBuffer
 
-	fakeBufferConsumed int
+	fakeBufs []fakeBuf
+}
+
+type fakeBuf struct {
+	bufConsumed    int
 	lastAvailCheck time.Time
 }
 
-// OpenAudioBuffer creates and returns a fake playing buffer.
-func OpenAudioBuffer(blockCount, blockSize, samplesPerSecond, bitsPerSample, channelCount uint32) (*AudioBuffer, error) {
-	ab := AudioBuffer{
-		SamplesPerSecond: samplesPerSecond,
-		BitsPerSample:    bitsPerSample,
-		ChannelCount:     channelCount,
-		BlockCount: blockCount,
-		BlockSize: blockSize,
-		lastAvailCheck: time.Now(),
+func (ao *audioOutput) init(ab *AudioBuffer) error {
+	ao.ab = ab
+	ao.fakeBufs = make([]fakeBuf, ao.ab.BlockCount)
+	for i := range ao.fakeBufs {
+		ao.fakeBufs[i].lastAvailCheck = time.Now()
 	}
-	return &ab, nil
+	return nil
 }
 
-// Close closes the fake buffer
-func (ab *AudioBuffer) Close() error {
+func (ao *audioOutput) close() error {
 	return nil
 }
 
-// BufferAvailable returns a reasonable value for an available (fake) buffer
-func (ab *AudioBuffer) BufferAvailable() int {
-	samplesPlayed := int(time.Now().Sub(ab.lastAvailCheck).Seconds() * float64(ab.SamplesPerSecond))
-	bytesWritten := samplesPlayed * int(ab.ChannelCount) * int(ab.BitsPerSample / 8)
-	ab.fakeBufferConsumed -= bytesWritten
-	if ab.fakeBufferConsumed < 0 {
-		ab.fakeBufferConsumed = 0
+func (ao *audioOutput) noLongerBusy(blockIndex int) bool {
+	buf := &ao.fakeBufs[blockIndex]
+	lastCheck := buf.lastAvailCheck
+	samplesPlayed := int(time.Now().Sub(lastCheck).Seconds() * float64(ao.ab.SamplesPerSecond))
+	bytesWritten := samplesPlayed * int(ao.ab.ChannelCount) * int(ao.ab.BitsPerSample/8)
+	buf.bufConsumed -= bytesWritten
+	if buf.bufConsumed < 0 {
+		buf.bufConsumed = 0
 	}
-	ab.lastAvailCheck = time.Now()
-	return ab.BufferSize() - ab.fakeBufferConsumed
+	buf.lastAvailCheck = time.Now()
+	return buf.bufConsumed == 0
 }
 
-// BufferSize returns a reasonable size for the fake buffer
-func (ab *AudioBuffer) BufferSize() int {
-	return int(ab.BlockSize*ab.BlockCount)
-}
-
-// Write pretends to write to a fake buffer
-func (ab *AudioBuffer) Write(data []byte) error {
-	ab.fakeBufferConsumed += len(data)
-	if ab.fakeBufferConsumed > ab.BufferSize() {
-		ab.fakeBufferConsumed = ab.BufferSize()
+func (ao *audioOutput) write(bytes []byte, i int) {
+	ao.fakeBufs[i].bufConsumed += len(bytes)
+	if ao.fakeBufs[i].bufConsumed > ao.ab.BufferSize() {
+		ao.fakeBufs[i].bufConsumed = ao.ab.BufferSize()
 	}
-	return nil
 }
