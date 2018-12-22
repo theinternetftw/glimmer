@@ -28,7 +28,7 @@ type WindowState struct {
 	Pix []byte
 
 	keyCodeArray [256]bool
-	keyCodeMap   map[key.Code]bool
+	keyCodeMap   map[KeyCode]bool
 	keyCharArray [256]bool
 	keyCharMap   map[rune]bool
 
@@ -50,7 +50,7 @@ func (s *WindowState) CharIsDown(c rune) bool {
 }
 
 // CodeIsDown returns the key state for that keyCode
-func (s *WindowState) CodeIsDown(c key.Code) bool {
+func (s *WindowState) CodeIsDown(c KeyCode) bool {
 	if c < 256 {
 		return s.keyCodeArray[byte(c)]
 	}
@@ -63,7 +63,7 @@ func (s *WindowState) updateKeyboardState(e key.Event) {
 		if e.Code < 256 {
 			s.keyCodeArray[byte(e.Code)] = setVal
 		} else {
-			s.keyCodeMap[e.Code] = setVal
+			s.keyCodeMap[KeyCode(e.Code)] = setVal
 		}
 		if e.Rune >= 0 && e.Rune < 256 {
 			s.keyCharArray[byte(e.Rune)] = setVal
@@ -112,7 +112,7 @@ func InitDisplayLoop(title string, windowWidth, windowHeight, frameWidth, frameH
 			Height:     frameHeight,
 			Pix:        make([]byte, 4*frameWidth*frameHeight),
 			eventQueue: w,
-			keyCodeMap: map[key.Code]bool{},
+			keyCodeMap: map[KeyCode]bool{},
 			keyCharMap: map[rune]bool{},
 		}
 
