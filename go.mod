@@ -7,7 +7,7 @@ module github.com/theinternetftw/glimmer
 // for what I want is available.
 
 require (
-	github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802
+	github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802 // indirect
 	github.com/hajimehoshi/oto v0.2.1
 	golang.org/x/exp v0.0.0-20180710024300-14dda7b62fcd
 	golang.org/x/image v0.0.0-20180708004352-c73c2afc3b81
