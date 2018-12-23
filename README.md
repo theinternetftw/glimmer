@@ -1,6 +1,6 @@
 ## glimmer - a bit of code for golang to get a framebuffer and sound.
 
-Windowing code uses exp/shiny.  Audio uses oto.
+Windowing code uses [exp/shiny](https://github.com/golang/exp/tree/master/shiny).  Audio uses [oto](https://github.com/hajimehoshi/oto).
 
 #### Dependencies for screen
 
