@@ -21,10 +21,13 @@ type WindowState struct {
 	// the Height of the framebuffer
 	Height int
 
-	// a Mutex that must be held when reading or writing in WindowState
-	Mutex sync.Mutex
+	// a Mutex that must be held when reading or writing gfx in WindowState
+	RenderMutex sync.Mutex
 
-	// Pix is the raw RGBA bytes of the framebuffer
+	// a Mutex that must be held when reading or writing input in WindowState
+	InputMutex sync.Mutex
+
+	// Pix is the raw RGBA bytes of the framebuffer. The RenderMutex must be held when touching it.
 	Pix []byte
 
 	keyCodeArray [256]bool
@@ -110,7 +113,7 @@ func InitDisplayLoop(title string, windowWidth, windowHeight, frameWidth, frameH
 		windowState := WindowState{
 			Width:      frameWidth,
 			Height:     frameHeight,
-			Pix:        make([]byte, 4*frameWidth*frameHeight),
+			Pix:        buf.RGBA().Pix,
 			eventQueue: w,
 			keyCodeMap: map[KeyCode]bool{},
 			keyCharMap: map[rune]bool{},
@@ -131,16 +134,15 @@ func InitDisplayLoop(title string, windowWidth, windowHeight, frameWidth, frameH
 				}
 
 			case key.Event:
-				windowState.Mutex.Lock()
+				windowState.InputMutex.Lock()
 				windowState.updateKeyboardState(e)
-				windowState.Mutex.Unlock()
+				windowState.InputMutex.Unlock()
 
 			case drawRequest:
-				windowState.Mutex.Lock()
-				copy(buf.RGBA().Pix, windowState.Pix)
+				windowState.RenderMutex.Lock()
 				tex.Upload(image.Point{0, 0}, buf, buf.Bounds())
 				windowState.drawRequested = false
-				windowState.Mutex.Unlock()
+				windowState.RenderMutex.Unlock()
 				publish = true
 
 			case size.Event:
