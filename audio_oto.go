@@ -1,3 +1,5 @@
+// +build !windows
+
 package glimmer
 
 import "github.com/hajimehoshi/oto"
