@@ -5,37 +5,33 @@ import (
 	"time"
 )
 
-// TODO: As a bonus, could check and see if
-// just watching when the main glimmer thread
-// publishes is enough to get wait for vsync
-// support.
-//
-// However, right now for my purposes I need
-// every-x-ms more than I need every vsync.
+const frameTimeLogSize = 300
 
 // FrameTimer allows for delaying at the end of
 // a frame, and for checking frame stats
 type FrameTimer struct {
 	frameCount uint
-	maxRDiff time.Duration
-	maxFDiff time.Duration
+    rtimeLog []time.Duration
+    ftimeLog []time.Duration
 
 	statsTimer int
 
-	frametimeGoal time.Duration
-
 	lastFlipTime time.Time
+	lastRenderTime time.Time
 }
-// Makes a frame timer for a certain goal framerate (in seconds)
-func MakeFrameTimer(timeGoalSecs float64) FrameTimer {
+// Makes a frame timer
+func MakeFrameTimer() FrameTimer {
 	return FrameTimer{
-		frametimeGoal: time.Duration(float64(time.Second)*timeGoalSecs),
 		lastFlipTime: time.Now(),
 	}
 }
 
 // WaitForFrametime sleeps until the frametime matches the desired interval
-func (f *FrameTimer) WaitForFrametime() {
+func (f *FrameTimer) WaitForFrametime(timeGoalSecs float64) {
+
+    f.MarkRenderComplete()
+
+    frametimeGoal := time.Duration(float64(time.Second)*timeGoalSecs)
 
 	rDiff := time.Now().Sub(f.lastFlipTime)
 
@@ -43,23 +39,33 @@ func (f *FrameTimer) WaitForFrametime() {
 	// a two stage wait with spin at the end,
 	// but that really adds to the cycles
 	fudge := 2 * time.Millisecond
-
-	toWait := f.frametimeGoal - rDiff - fudge
+	toWait := frametimeGoal - rDiff - fudge
 	if toWait > time.Duration(0) {
 		<-time.NewTimer(toWait).C
 	}
 
+    f.MarkFrameComplete()
+}
+
+// TickFrame updates frame render stats as if the render was just completed
+func (f *FrameTimer) MarkRenderComplete() {
+	rdiff := time.Now().Sub(f.lastFlipTime)
+    f.rtimeLog = append(f.rtimeLog, rdiff)
+    if len(f.rtimeLog) > frameTimeLogSize {
+        f.rtimeLog = f.rtimeLog[1:]
+    }
+}
+
+// TickFrame updates frame render stats as if the render was just completed
+func (f *FrameTimer) MarkFrameComplete() {
 	frameStart := f.lastFlipTime
 	f.lastFlipTime = time.Now()
 
-	fDiff := time.Now().Sub(frameStart)
-	if rDiff > f.maxRDiff {
-		f.maxRDiff = rDiff
-	}
-	if fDiff > f.maxFDiff {
-		f.maxFDiff = fDiff
-	}
-
+	fdiff := time.Now().Sub(frameStart)
+    f.ftimeLog = append(f.ftimeLog, fdiff)
+    if len(f.ftimeLog) > frameTimeLogSize {
+        f.ftimeLog = f.ftimeLog[1:]
+    }
 	f.frameCount++
 	f.statsTimer++
 }
@@ -70,12 +76,25 @@ func (f *FrameTimer) WaitForFrametime() {
 func (f *FrameTimer) PrintStatsEveryXFrames(numFrames int) {
 	if f.statsTimer >= numFrames {
 
-		maxRTime := f.maxRDiff.Seconds()
-		maxFTime := f.maxFDiff.Seconds()
-		fmt.Printf("maxRTime %.4f, maxFTime %.4f\n", maxRTime, maxFTime)
-
+        var maxRTime time.Duration
+        var maxFTime time.Duration
+        var meanRTime time.Duration
+        var meanFTime time.Duration
+        for _, d := range f.rtimeLog {
+            if d > maxRTime {
+                maxRTime = d
+            }
+            meanRTime += d
+        }
+        for _, d := range f.ftimeLog {
+            if d > maxFTime {
+                maxFTime = d
+            }
+            meanFTime += d
+        }
+        meanRTime /= time.Duration(len(f.rtimeLog))
+        meanFTime /= time.Duration(len(f.ftimeLog))
+		fmt.Printf("meanRTime %.4f, meanFTime %.4f, maxRTime %.4f, maxFTime %.4f\n", meanRTime.Seconds(), meanFTime.Seconds(), maxRTime.Seconds(), maxFTime.Seconds())
 		f.statsTimer = 0
-		f.maxRDiff = 0
-		f.maxFDiff = 0
 	}
 }

@@ -1,174 +1,325 @@
 package glimmer
 
-import "golang.org/x/mobile/event/key"
+import "github.com/hajimehoshi/ebiten/v2"
 
-// Copyright 2015 The Go Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found below:
-
-// Copyright (c) 2009 The Go Authors. All rights reserved.
-// 
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-// 
-//    * Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//    * Redistributions in binary form must reproduce the above
-// copyright notice, this list of conditions and the following disclaimer
-// in the documentation and/or other materials provided with the
-// distribution.
-//    * Neither the name of Google Inc. nor the names of its
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-// 
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-// NOTE: this makes it so no x/mobile deps are needed downstream
-
-type KeyCode uint32
+type KeyCode int
 
 const (
-	CodeUnknown KeyCode = KeyCode(key.CodeUnknown)
+    KeyCodeUnknown KeyCode = -1
 
-	CodeA KeyCode = KeyCode(key.CodeA)
-	CodeB KeyCode = KeyCode(key.CodeB)
-	CodeC KeyCode = KeyCode(key.CodeC)
-	CodeD KeyCode = KeyCode(key.CodeD)
-	CodeE KeyCode = KeyCode(key.CodeE)
-	CodeF KeyCode = KeyCode(key.CodeF)
-	CodeG KeyCode = KeyCode(key.CodeG)
-	CodeH KeyCode = KeyCode(key.CodeH)
-	CodeI KeyCode = KeyCode(key.CodeI)
-	CodeJ KeyCode = KeyCode(key.CodeJ)
-	CodeK KeyCode = KeyCode(key.CodeK)
-	CodeL KeyCode = KeyCode(key.CodeL)
-	CodeM KeyCode = KeyCode(key.CodeM)
-	CodeN KeyCode = KeyCode(key.CodeN)
-	CodeO KeyCode = KeyCode(key.CodeO)
-	CodeP KeyCode = KeyCode(key.CodeP)
-	CodeQ KeyCode = KeyCode(key.CodeQ)
-	CodeR KeyCode = KeyCode(key.CodeR)
-	CodeS KeyCode = KeyCode(key.CodeS)
-	CodeT KeyCode = KeyCode(key.CodeT)
-	CodeU KeyCode = KeyCode(key.CodeU)
-	CodeV KeyCode = KeyCode(key.CodeV)
-	CodeW KeyCode = KeyCode(key.CodeW)
-	CodeX KeyCode = KeyCode(key.CodeX)
-	CodeY KeyCode = KeyCode(key.CodeY)
-	CodeZ KeyCode = KeyCode(key.CodeZ)
-   
-	Code1 KeyCode = KeyCode(key.Code1)
-	Code2 KeyCode = KeyCode(key.Code2)
-	Code3 KeyCode = KeyCode(key.Code3)
-	Code4 KeyCode = KeyCode(key.Code4)
-	Code5 KeyCode = KeyCode(key.Code5)
-	Code6 KeyCode = KeyCode(key.Code6)
-	Code7 KeyCode = KeyCode(key.Code7)
-	Code8 KeyCode = KeyCode(key.Code8)
-	Code9 KeyCode = KeyCode(key.Code9)
-	Code0 KeyCode = KeyCode(key.Code0)
-
-	CodeReturnEnter        KeyCode = KeyCode(key.CodeReturnEnter)
-	CodeEscape             KeyCode = KeyCode(key.CodeEscape)
-	CodeDeleteBackspace    KeyCode = KeyCode(key.CodeDeleteBackspace)
-	CodeTab                KeyCode = KeyCode(key.CodeTab)
-	CodeSpacebar           KeyCode = KeyCode(key.CodeSpacebar)
-	CodeHyphenMinus        KeyCode = KeyCode(key.CodeHyphenMinus)
-	CodeEqualSign          KeyCode = KeyCode(key.CodeEqualSign)
-	CodeLeftSquareBracket  KeyCode = KeyCode(key.CodeLeftSquareBracket)
-	CodeRightSquareBracket KeyCode = KeyCode(key.CodeRightSquareBracket)
-	CodeBackslash          KeyCode = KeyCode(key.CodeBackslash)
-	CodeSemicolon          KeyCode = KeyCode(key.CodeSemicolon)
-	CodeApostrophe         KeyCode = KeyCode(key.CodeApostrophe)
-	CodeGraveAccent        KeyCode = KeyCode(key.CodeGraveAccent)
-	CodeComma              KeyCode = KeyCode(key.CodeComma)
-	CodeFullStop           KeyCode = KeyCode(key.CodeFullStop)
-	CodeSlash              KeyCode = KeyCode(key.CodeSlash)
-	CodeCapsLock           KeyCode = KeyCode(key.CodeCapsLock)
-
-	CodeF1  KeyCode = KeyCode(key.CodeF1)
-	CodeF2  KeyCode = KeyCode(key.CodeF2)
-	CodeF3  KeyCode = KeyCode(key.CodeF3)
-	CodeF4  KeyCode = KeyCode(key.CodeF4)
-	CodeF5  KeyCode = KeyCode(key.CodeF5)
-	CodeF6  KeyCode = KeyCode(key.CodeF6)
-	CodeF7  KeyCode = KeyCode(key.CodeF7)
-	CodeF8  KeyCode = KeyCode(key.CodeF8)
-	CodeF9  KeyCode = KeyCode(key.CodeF9)
-	CodeF10 KeyCode = KeyCode(key.CodeF10)
-	CodeF11 KeyCode = KeyCode(key.CodeF11)
-	CodeF12 KeyCode = KeyCode(key.CodeF12)
-
-	CodePause         KeyCode = KeyCode(key.CodePause)
-	CodeInsert        KeyCode = KeyCode(key.CodeInsert)
-	CodeHome          KeyCode = KeyCode(key.CodeHome)
-	CodePageUp        KeyCode = KeyCode(key.CodePageUp)
-	CodeDeleteForward KeyCode = KeyCode(key.CodeDeleteForward)
-	CodeEnd           KeyCode = KeyCode(key.CodeEnd)
-	CodePageDown      KeyCode = KeyCode(key.CodePageDown)
-
-	CodeRightArrow KeyCode = KeyCode(key.CodeRightArrow)
-	CodeLeftArrow  KeyCode = KeyCode(key.CodeLeftArrow)
-	CodeDownArrow  KeyCode = KeyCode(key.CodeDownArrow)
-	CodeUpArrow    KeyCode = KeyCode(key.CodeUpArrow)
-
-	CodeKeypadNumLock     KeyCode = KeyCode(key.CodeKeypadNumLock)
-	CodeKeypadSlash       KeyCode = KeyCode(key.CodeKeypadSlash)
-	CodeKeypadAsterisk    KeyCode = KeyCode(key.CodeKeypadAsterisk)
-	CodeKeypadHyphenMinus KeyCode = KeyCode(key.CodeKeypadHyphenMinus)
-	CodeKeypadPlusSign    KeyCode = KeyCode(key.CodeKeypadPlusSign)
-	CodeKeypadEnter       KeyCode = KeyCode(key.CodeKeypadEnter)
-	CodeKeypad1           KeyCode = KeyCode(key.CodeKeypad1)
-	CodeKeypad2           KeyCode = KeyCode(key.CodeKeypad2)
-	CodeKeypad3           KeyCode = KeyCode(key.CodeKeypad3)
-	CodeKeypad4           KeyCode = KeyCode(key.CodeKeypad4)
-	CodeKeypad5           KeyCode = KeyCode(key.CodeKeypad5)
-	CodeKeypad6           KeyCode = KeyCode(key.CodeKeypad6)
-	CodeKeypad7           KeyCode = KeyCode(key.CodeKeypad7)
-	CodeKeypad8           KeyCode = KeyCode(key.CodeKeypad8)
-	CodeKeypad9           KeyCode = KeyCode(key.CodeKeypad9)
-	CodeKeypad0           KeyCode = KeyCode(key.CodeKeypad0)
-	CodeKeypadFullStop    KeyCode = KeyCode(key.CodeKeypadFullStop)
-	CodeKeypadEqualSign   KeyCode = KeyCode(key.CodeKeypadEqualSign)
-
-	CodeF13 KeyCode = KeyCode(key.CodeF13)
-	CodeF14 KeyCode = KeyCode(key.CodeF14)
-	CodeF15 KeyCode = KeyCode(key.CodeF15)
-	CodeF16 KeyCode = KeyCode(key.CodeF16)
-	CodeF17 KeyCode = KeyCode(key.CodeF17)
-	CodeF18 KeyCode = KeyCode(key.CodeF18)
-	CodeF19 KeyCode = KeyCode(key.CodeF19)
-	CodeF20 KeyCode = KeyCode(key.CodeF20)
-	CodeF21 KeyCode = KeyCode(key.CodeF21)
-	CodeF22 KeyCode = KeyCode(key.CodeF22)
-	CodeF23 KeyCode = KeyCode(key.CodeF23)
-	CodeF24 KeyCode = KeyCode(key.CodeF24)
-
-	CodeHelp KeyCode = KeyCode(key.CodeHelp)
-
-	CodeMute       KeyCode = KeyCode(key.CodeMute)
-	CodeVolumeUp   KeyCode = KeyCode(key.CodeVolumeUp)
-	CodeVolumeDown KeyCode = KeyCode(key.CodeVolumeDown)
-
-	CodeLeftControl  KeyCode = KeyCode(key.CodeLeftControl)
-	CodeLeftShift    KeyCode = KeyCode(key.CodeLeftShift)
-	CodeLeftAlt      KeyCode = KeyCode(key.CodeLeftAlt)
-	CodeLeftGUI      KeyCode = KeyCode(key.CodeLeftGUI)
-	CodeRightControl KeyCode = KeyCode(key.CodeRightControl)
-	CodeRightShift   KeyCode = KeyCode(key.CodeRightShift)
-	CodeRightAlt     KeyCode = KeyCode(key.CodeRightAlt)
-	CodeRightGUI     KeyCode = KeyCode(key.CodeRightGUI)
-
-	CodeCompose KeyCode = KeyCode(key.CodeCompose)
+    KeyCodeA KeyCode = KeyCode(ebiten.KeyA)
+    KeyCodeB KeyCode = KeyCode(ebiten.KeyB) 
+    KeyCodeC KeyCode = KeyCode(ebiten.KeyC) 
+    KeyCodeD KeyCode = KeyCode(ebiten.KeyD) 
+    KeyCodeE KeyCode = KeyCode(ebiten.KeyE) 
+    KeyCodeF KeyCode = KeyCode(ebiten.KeyF) 
+    KeyCodeG KeyCode = KeyCode(ebiten.KeyG) 
+    KeyCodeH KeyCode = KeyCode(ebiten.KeyH) 
+    KeyCodeI KeyCode = KeyCode(ebiten.KeyI) 
+    KeyCodeJ KeyCode = KeyCode(ebiten.KeyJ) 
+    KeyCodeK KeyCode = KeyCode(ebiten.KeyK) 
+    KeyCodeL KeyCode = KeyCode(ebiten.KeyL) 
+    KeyCodeM KeyCode = KeyCode(ebiten.KeyM) 
+    KeyCodeN KeyCode = KeyCode(ebiten.KeyN) 
+    KeyCodeO KeyCode = KeyCode(ebiten.KeyO) 
+    KeyCodeP KeyCode = KeyCode(ebiten.KeyP) 
+    KeyCodeQ KeyCode = KeyCode(ebiten.KeyQ) 
+    KeyCodeR KeyCode = KeyCode(ebiten.KeyR) 
+    KeyCodeS KeyCode = KeyCode(ebiten.KeyS) 
+    KeyCodeT KeyCode = KeyCode(ebiten.KeyT) 
+    KeyCodeU KeyCode = KeyCode(ebiten.KeyU) 
+    KeyCodeV KeyCode = KeyCode(ebiten.KeyV) 
+    KeyCodeW KeyCode = KeyCode(ebiten.KeyW) 
+    KeyCodeX KeyCode = KeyCode(ebiten.KeyX) 
+    KeyCodeY KeyCode = KeyCode(ebiten.KeyY) 
+    KeyCodeZ KeyCode = KeyCode(ebiten.KeyZ) 
+    KeyCodeAltLeft KeyCode = KeyCode(ebiten.KeyAltLeft) 
+    KeyCodeAltRight KeyCode = KeyCode(ebiten.KeyAltRight) 
+    KeyCodeArrowDown KeyCode = KeyCode(ebiten.KeyArrowDown) 
+    KeyCodeArrowLeft KeyCode = KeyCode(ebiten.KeyArrowLeft) 
+    KeyCodeArrowRight KeyCode = KeyCode(ebiten.KeyArrowRight) 
+    KeyCodeArrowUp KeyCode = KeyCode(ebiten.KeyArrowUp) 
+    KeyCodeBackquote KeyCode = KeyCode(ebiten.KeyBackquote) 
+    KeyCodeBackslash KeyCode = KeyCode(ebiten.KeyBackslash) 
+    KeyCodeBackspace KeyCode = KeyCode(ebiten.KeyBackspace) 
+    KeyCodeBracketLeft KeyCode = KeyCode(ebiten.KeyBracketLeft) 
+    KeyCodeBracketRight KeyCode = KeyCode(ebiten.KeyBracketRight) 
+    KeyCodeCapsLock KeyCode = KeyCode(ebiten.KeyCapsLock) 
+    KeyCodeComma KeyCode = KeyCode(ebiten.KeyComma) 
+    KeyCodeContextMenu KeyCode = KeyCode(ebiten.KeyContextMenu) 
+    KeyCodeControlLeft KeyCode = KeyCode(ebiten.KeyControlLeft) 
+    KeyCodeControlRight KeyCode = KeyCode(ebiten.KeyControlRight) 
+    KeyCodeDelete KeyCode = KeyCode(ebiten.KeyDelete) 
+    KeyCodeDigit0 KeyCode = KeyCode(ebiten.KeyDigit0) 
+    KeyCodeDigit1 KeyCode = KeyCode(ebiten.KeyDigit1) 
+    KeyCodeDigit2 KeyCode = KeyCode(ebiten.KeyDigit2) 
+    KeyCodeDigit3 KeyCode = KeyCode(ebiten.KeyDigit3) 
+    KeyCodeDigit4 KeyCode = KeyCode(ebiten.KeyDigit4) 
+    KeyCodeDigit5 KeyCode = KeyCode(ebiten.KeyDigit5) 
+    KeyCodeDigit6 KeyCode = KeyCode(ebiten.KeyDigit6) 
+    KeyCodeDigit7 KeyCode = KeyCode(ebiten.KeyDigit7) 
+    KeyCodeDigit8 KeyCode = KeyCode(ebiten.KeyDigit8) 
+    KeyCodeDigit9 KeyCode = KeyCode(ebiten.KeyDigit9) 
+    KeyCodeEnd KeyCode = KeyCode(ebiten.KeyEnd) 
+    KeyCodeEnter KeyCode = KeyCode(ebiten.KeyEnter) 
+    KeyCodeEqual KeyCode = KeyCode(ebiten.KeyEqual) 
+    KeyCodeEscape KeyCode = KeyCode(ebiten.KeyEscape) 
+    KeyCodeF1 KeyCode = KeyCode(ebiten.KeyF1) 
+    KeyCodeF2 KeyCode = KeyCode(ebiten.KeyF2) 
+    KeyCodeF3 KeyCode = KeyCode(ebiten.KeyF3) 
+    KeyCodeF4 KeyCode = KeyCode(ebiten.KeyF4) 
+    KeyCodeF5 KeyCode = KeyCode(ebiten.KeyF5) 
+    KeyCodeF6 KeyCode = KeyCode(ebiten.KeyF6) 
+    KeyCodeF7 KeyCode = KeyCode(ebiten.KeyF7) 
+    KeyCodeF8 KeyCode = KeyCode(ebiten.KeyF8) 
+    KeyCodeF9 KeyCode = KeyCode(ebiten.KeyF9) 
+    KeyCodeF10 KeyCode = KeyCode(ebiten.KeyF10) 
+    KeyCodeF11 KeyCode = KeyCode(ebiten.KeyF11) 
+    KeyCodeF12 KeyCode = KeyCode(ebiten.KeyF12) 
+    KeyCodeHome KeyCode = KeyCode(ebiten.KeyHome) 
+    KeyCodeInsert KeyCode = KeyCode(ebiten.KeyInsert) 
+    KeyCodeMetaLeft KeyCode = KeyCode(ebiten.KeyMetaLeft) 
+    KeyCodeMetaRight KeyCode = KeyCode(ebiten.KeyMetaRight) 
+    KeyCodeMinus KeyCode = KeyCode(ebiten.KeyMinus) 
+    KeyCodePageDown KeyCode = KeyCode(ebiten.KeyPageDown) 
+    KeyCodePageUp KeyCode = KeyCode(ebiten.KeyPageUp) 
+    KeyCodePause KeyCode = KeyCode(ebiten.KeyPause) 
+    KeyCodePeriod KeyCode = KeyCode(ebiten.KeyPeriod) 
+    KeyCodePrintScreen KeyCode = KeyCode(ebiten.KeyPrintScreen) 
+    KeyCodeQuote KeyCode = KeyCode(ebiten.KeyQuote) 
+    KeyCodeScrollLock KeyCode = KeyCode(ebiten.KeyScrollLock) 
+    KeyCodeSemicolon KeyCode = KeyCode(ebiten.KeySemicolon) 
+    KeyCodeShiftLeft KeyCode = KeyCode(ebiten.KeyShiftLeft) 
+    KeyCodeShiftRight KeyCode = KeyCode(ebiten.KeyShiftRight) 
+    KeyCodeSlash KeyCode = KeyCode(ebiten.KeySlash) 
+    KeyCodeSpace KeyCode = KeyCode(ebiten.KeySpace) 
+    KeyCodeTab KeyCode = KeyCode(ebiten.KeyTab) 
+    KeyCodeAlt KeyCode = KeyCode(ebiten.KeyAlt) 
+    KeyCodeControl KeyCode = KeyCode(ebiten.KeyControl) 
+    KeyCodeShift KeyCode = KeyCode(ebiten.KeyShift) 
+    KeyCodeMeta KeyCode = KeyCode(ebiten.KeyMeta) 
 )
+
+var KeyCodeToUnshiftedAsciiMap = map[KeyCode]rune {
+    KeyCodeA: 'a',
+    KeyCodeB: 'b',
+    KeyCodeC: 'c',
+    KeyCodeD: 'd',
+    KeyCodeE: 'e',
+    KeyCodeF: 'f',
+    KeyCodeG: 'g',
+    KeyCodeH: 'h',
+    KeyCodeI: 'i',
+    KeyCodeJ: 'j',
+    KeyCodeK: 'k',
+    KeyCodeL: 'l',
+    KeyCodeM: 'm',
+    KeyCodeN: 'n',
+    KeyCodeO: 'o',
+    KeyCodeP: 'p',
+    KeyCodeQ: 'q',
+    KeyCodeR: 'r',
+    KeyCodeS: 's',
+    KeyCodeT: 't',
+    KeyCodeU: 'u',
+    KeyCodeV: 'v',
+    KeyCodeW: 'w',
+    KeyCodeX: 'x',
+    KeyCodeY: 'y',
+    KeyCodeZ: 'z',
+    KeyCodeBackquote: '`',
+    KeyCodeBackslash: '\\',
+    KeyCodeBackspace: '\b',
+    KeyCodeBracketLeft: '[',
+    KeyCodeBracketRight: ']',
+    KeyCodeComma: ',',
+    KeyCodeDelete: '\x7f',
+    KeyCodeDigit0: '0',
+    KeyCodeDigit1: '1',
+    KeyCodeDigit2: '2',
+    KeyCodeDigit3: '3',
+    KeyCodeDigit4: '4',
+    KeyCodeDigit5: '5',
+    KeyCodeDigit6: '6',
+    KeyCodeDigit7: '7',
+    KeyCodeDigit8: '8',
+    KeyCodeDigit9: '9',
+    KeyCodeEnter: '\n',
+    KeyCodeEqual: '=',
+    KeyCodeEscape: '\x1b',
+    KeyCodeMinus: '-',
+    KeyCodePeriod: '.',
+    KeyCodeQuote: '\'',
+    KeyCodeSemicolon: ';',
+    KeyCodeSlash: '/',
+    KeyCodeSpace: ' ',
+    KeyCodeTab: '\t',
+}
+
+var KeyCodeToShiftedAsciiMap = map[KeyCode]rune {
+    KeyCodeA: 'A',
+    KeyCodeB: 'B',
+    KeyCodeC: 'C',
+    KeyCodeD: 'D',
+    KeyCodeE: 'E',
+    KeyCodeF: 'F',
+    KeyCodeG: 'G',
+    KeyCodeH: 'H',
+    KeyCodeI: 'I',
+    KeyCodeJ: 'J',
+    KeyCodeK: 'K',
+    KeyCodeL: 'L',
+    KeyCodeM: 'M',
+    KeyCodeN: 'N',
+    KeyCodeO: 'O',
+    KeyCodeP: 'P',
+    KeyCodeQ: 'Q',
+    KeyCodeR: 'R',
+    KeyCodeS: 'S',
+    KeyCodeT: 'T',
+    KeyCodeU: 'U',
+    KeyCodeV: 'V',
+    KeyCodeW: 'W',
+    KeyCodeX: 'X',
+    KeyCodeY: 'Y',
+    KeyCodeZ: 'Z',
+    KeyCodeBackquote: '~',
+    KeyCodeBackslash: '|',
+    KeyCodeBackspace: '\b',
+    KeyCodeBracketLeft: '{',
+    KeyCodeBracketRight: '}',
+    KeyCodeComma: '<',
+    KeyCodeDelete: '\x7f',
+    KeyCodeDigit0: ')',
+    KeyCodeDigit1: '!',
+    KeyCodeDigit2: '@',
+    KeyCodeDigit3: '#',
+    KeyCodeDigit4: '$',
+    KeyCodeDigit5: '%',
+    KeyCodeDigit6: '^',
+    KeyCodeDigit7: '&',
+    KeyCodeDigit8: '*',
+    KeyCodeDigit9: '(',
+    KeyCodeEnter: '\n',
+    KeyCodeEqual: '+',
+    KeyCodeEscape: '\x1b',
+    KeyCodeMinus: '_',
+    KeyCodePeriod: '>',
+    KeyCodeQuote: '"',
+    KeyCodeSemicolon: ':',
+    KeyCodeSlash: '?',
+    KeyCodeSpace: ' ',
+    KeyCodeTab: '\t',
+}
+
+var UnshiftedAsciiToKeyCodeMap = map[rune]KeyCode {
+    'a': KeyCodeA,
+    'b': KeyCodeB,
+    'c': KeyCodeC,
+    'd': KeyCodeD,
+    'e': KeyCodeE,
+    'f': KeyCodeF,
+    'g': KeyCodeG,
+    'h': KeyCodeH,
+    'i': KeyCodeI,
+    'j': KeyCodeJ,
+    'k': KeyCodeK,
+    'l': KeyCodeL,
+    'm': KeyCodeM,
+    'n': KeyCodeN,
+    'o': KeyCodeO,
+    'p': KeyCodeP,
+    'q': KeyCodeQ,
+    'r': KeyCodeR,
+    's': KeyCodeS,
+    't': KeyCodeT,
+    'u': KeyCodeU,
+    'v': KeyCodeV,
+    'w': KeyCodeW,
+    'x': KeyCodeX,
+    'y': KeyCodeY,
+    'z': KeyCodeZ,
+    '`': KeyCodeBackquote,
+    '\\': KeyCodeBackslash,
+    '\b': KeyCodeBackspace,
+    '[': KeyCodeBracketLeft,
+    ']': KeyCodeBracketRight,
+    ',': KeyCodeComma,
+    '\x7f': KeyCodeDelete,
+    '0': KeyCodeDigit0,
+    '1': KeyCodeDigit1,
+    '2': KeyCodeDigit2,
+    '3': KeyCodeDigit3,
+    '4': KeyCodeDigit4,
+    '5': KeyCodeDigit5,
+    '6': KeyCodeDigit6,
+    '7': KeyCodeDigit7,
+    '8': KeyCodeDigit8,
+    '9': KeyCodeDigit9,
+    '\n': KeyCodeEnter,
+    '=': KeyCodeEqual,
+    '\x1b': KeyCodeEscape,
+    '-': KeyCodeMinus,
+    '.': KeyCodePeriod,
+    '\'': KeyCodeQuote,
+    ';': KeyCodeSemicolon,
+    '/': KeyCodeSlash,
+    ' ': KeyCodeSpace,
+    '\t': KeyCodeTab,
+}
+
+var ShiftedAsciiToKeyCodeMap = map[rune]KeyCode {
+    'A': KeyCodeA,
+    'B': KeyCodeB,
+    'C': KeyCodeC,
+    'D': KeyCodeD,
+    'E': KeyCodeE,
+    'F': KeyCodeF,
+    'G': KeyCodeG,
+    'H': KeyCodeH,
+    'I': KeyCodeI,
+    'J': KeyCodeJ,
+    'K': KeyCodeK,
+    'L': KeyCodeL,
+    'M': KeyCodeM,
+    'N': KeyCodeN,
+    'O': KeyCodeO,
+    'P': KeyCodeP,
+    'Q': KeyCodeQ,
+    'R': KeyCodeR,
+    'S': KeyCodeS,
+    'T': KeyCodeT,
+    'U': KeyCodeU,
+    'V': KeyCodeV,
+    'W': KeyCodeW,
+    'X': KeyCodeX,
+    'Y': KeyCodeY,
+    'Z': KeyCodeZ,
+    '~': KeyCodeBackquote,
+    '|': KeyCodeBackslash,
+    '\b': KeyCodeBackspace,
+    '{': KeyCodeBracketLeft,
+    '}': KeyCodeBracketRight,
+    '<': KeyCodeComma,
+    '\x7f': KeyCodeDelete,
+    ')': KeyCodeDigit0,
+    '!': KeyCodeDigit1,
+    '@': KeyCodeDigit2,
+    '#': KeyCodeDigit3,
+    '$': KeyCodeDigit4,
+    '%': KeyCodeDigit5,
+    '^': KeyCodeDigit6,
+    '&': KeyCodeDigit7,
+    '*': KeyCodeDigit8,
+    '(': KeyCodeDigit9,
+    '\n': KeyCodeEnter,
+    '+': KeyCodeEqual,
+    '\x1b': KeyCodeEscape,
+    '_': KeyCodeMinus,
+    '>': KeyCodePeriod,
+    '"': KeyCodeQuote,
+    ':': KeyCodeSemicolon,
+    '?': KeyCodeSlash,
+    ' ': KeyCodeSpace,
+    '\t': KeyCodeTab,
+}

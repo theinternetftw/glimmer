@@ -2,55 +2,71 @@ package glimmer
 
 import (
 	"time"
+	"sync"
 )
 
 // AudioBuffer lets you play sound.
 type AudioBuffer struct {
-	SamplesPerSecond uint32
-	BitsPerSample    uint32
-	ChannelCount     uint32
-	BlockSize        uint32
-	BlockCount       uint32
+	SamplesPerSecond int
+	BitsPerSample    int
+	ChannelCount     int
 
-	currentBlockIndex int
+	buf []byte
+    bufMutex sync.Mutex
 
-	blocks       []soundBlock
-	
 	output audioOutput
+    outputBufDuration time.Duration
 
-	closer chan bool
-	writer chan int
+    // ReadLenNotifier is used at the end of every time the audio device
+    // consumes the buffer, sending the number of bytes consumed
+    // in the buffer consumption
+    ReadLenNotifier chan int
+    bufUnderflows int
+
+	prevReadLen int
+	maxWaited time.Duration
 }
 
-// NOTE: Right now this is pretty much designed around
-// the "submit blocks" style of audio api.
-//
-// Transition to circular buffer?
-//
-// For "submit blocks" underlying implementations
-// you'd just move the cursor forward however many
-// blocks are ready, copy that data and submit it.
+// GetPrevReadLen returns the size of the last buffer chunk the system asked for in its audio callback
+func (ab *AudioBuffer) GetPrevReadLen() int {
+	return ab.prevReadLen
+}
 
-type soundBlock struct {
-	bytes []byte
-	used  int
-	busy bool
+// GetMaxWaited is to learn the max amount WaitForPlaybackIfAhead has waited in between this and the last call of
+// GetMaxWaited. It's for debugging.
+func (ab *AudioBuffer) GetMaxWaited() time.Duration {
+	out := ab.maxWaited
+	ab.maxWaited = time.Duration(0)
+	return out
+}
+
+// WaitForPlaybackIfAhead waits until one buffer chunk length is yet to be processed by the OS.
+func (ab *AudioBuffer) WaitForPlaybackIfAhead() {
+	start := time.Now()
+	for ab.GetLenUnplayedData() > ab.prevReadLen {
+		ab.prevReadLen = <-ab.ReadLenNotifier
+	}
+	audioDiff := time.Now().Sub(start)
+	if audioDiff > ab.maxWaited {
+		ab.maxWaited = audioDiff
+	}
+}
+
+type OpenAudioBufferOptions struct {
+    OutputBufDuration time.Duration
+    SamplesPerSecond int
+    BitsPerSample int
+    ChannelCount int
 }
 
 // OpenAudioBuffer creates and returns a new playing buffer
-func OpenAudioBuffer(blockCount, blockSize, samplesPerSecond, bitsPerSample, channelCount uint32) (*AudioBuffer, error) {
+func OpenAudioBuffer(opts OpenAudioBufferOptions) (*AudioBuffer, error) {
 	ab := AudioBuffer{
-		SamplesPerSecond: samplesPerSecond,
-		BitsPerSample:    bitsPerSample,
-		ChannelCount:     channelCount,
-		BlockCount: blockCount,
-		BlockSize: blockSize,
-		writer: make(chan int, blockCount+1),
-		closer: make(chan bool),
-	}
-	ab.blocks = make([]soundBlock, blockCount)
-	for i := range ab.blocks {
-		ab.blocks[i].bytes = make([]byte, blockSize)
+		SamplesPerSecond: opts.SamplesPerSecond,
+		BitsPerSample:    opts.BitsPerSample,
+		ChannelCount:     opts.ChannelCount,
+		outputBufDuration: opts.OutputBufDuration,
+        ReadLenNotifier: make(chan int),
 	}
 
 	err := ab.output.init(&ab)
@@ -58,106 +74,65 @@ func OpenAudioBuffer(blockCount, blockSize, samplesPerSecond, bitsPerSample, cha
 		return nil, err
 	}
 
-	go ab.writerLoop()
+	// wait to be sure audio is ready, and to get exact len data
+	ab.prevReadLen = <-ab.ReadLenNotifier
 
 	return &ab, nil
 }
 
-func (ab *AudioBuffer) updateFreeBlockInfo() {
-	for i := range ab.blocks {
-		if ab.output.noLongerBusy(i) {
-			ab.blocks[i].busy = false
-		}
-	}
+func (ab *AudioBuffer) GetLatestUnderflowCount() int {
+    ab.bufMutex.Lock()
+    count := ab.bufUnderflows
+    ab.bufUnderflows = 0
+    ab.bufMutex.Unlock()
+    return count
 }
 
-func (ab *AudioBuffer) Write(data []byte) {
-	ab.updateFreeBlockInfo()
-	for len(data) > 0 {
+func (ab *AudioBuffer) GetLenUnplayedData() int {
+    ab.bufMutex.Lock()
+    bLen := len(ab.buf)
+    ab.bufMutex.Unlock()
+    return bLen
+}
 
-		if ab.blocks[ab.currentBlockIndex].busy {
-			ab.currentBlockIndex = ab.waitOnFreeBlock()
-			ab.blocks[ab.currentBlockIndex].used = 0
-		}
+func (ab *AudioBuffer) Write(data []byte) (int, error) {
+    ab.bufMutex.Lock()
+    ab.buf = append(ab.buf, data...)
+    ab.bufMutex.Unlock()
+    return len(data), nil
+}
 
-		block := &ab.blocks[ab.currentBlockIndex]
+func (ab *AudioBuffer) Read(buf []byte) (int, error) {
+    ab.bufMutex.Lock()
+    if len(buf) > len(ab.buf) {
+        // fmt.Println("[glimmer-audio] buf underflow:", len(buf), "vs", len(ab.buf))
+        ab.bufUnderflows++
+    }
+    n := copy(buf, ab.buf)
+    ab.buf = ab.buf[n:]
+    ab.bufMutex.Unlock()
 
-		spaceLeft := len(block.bytes) - block.used
+    // fill with zero if wrote nothing, otherwise fill with last val to give the buffer a chance to avoid a click if it can catch up
+    if n == 0 {
+        for i := range buf {
+            buf[i] = 0
+        }
+    } else {
+        for i := n+1; i < len(buf); i++ {
+            buf[i] = buf[i-1]
+        }
+    }
 
-		if len(data) < spaceLeft {
-			copy(block.bytes[block.used:], data)
-			block.used += len(data)
-			break
-		}
-		copy(block.bytes[block.used:], data[:spaceLeft])
-		data = data[spaceLeft:]
+    select {
+    case ab.ReadLenNotifier<-len(buf):
+    default:
+    }
 
-		block.busy = true
-
-		// the api calls sometimes takes a few ms, so let's not wait on them
-		ab.writer <- ab.currentBlockIndex
-	}
+    return len(buf), nil
 }
 
 // Close closes the buffer and releases all resourses.
-// It waits for all queued buffer writes to finish playing first.
 func (ab *AudioBuffer) Close() error {
-	for ab.BufferAvailable() / int(ab.BlockSize) < len(ab.blocks) {
-		ab.updateFreeBlockInfo()
-		time.Sleep(5)
-	}
-	err := ab.output.close()
-	if err != nil {
-		return err
-	}
-	ab.closer <- true
-	return nil
+    return ab.output.close()
 }
 
-// TODO: timeout w/ err
-func (ab *AudioBuffer) waitOnFreeBlock() int {
-	for {
-		ab.updateFreeBlockInfo()
-		for i := range ab.blocks {
-			if !ab.blocks[i].busy {
-				return i
-			}
-		}
-		time.Sleep(1)
-	}
-}
-
-// BufferAvailable returns the number of bytes available
-// to be filled in all the blocks not currently queued.
-func (ab *AudioBuffer) BufferAvailable() int {
-	available := 0
-	ab.updateFreeBlockInfo()
-	for i := range ab.blocks {
-		if !ab.blocks[i].busy {
-			block := &ab.blocks[i]
-			if i == ab.currentBlockIndex {
-				available += int(ab.BlockSize) - block.used
-			} else {
-				available += int(ab.BlockSize)
-			}
-		}
-	}
-	return available
-}
-
-// BufferSize returns the size of the buffer (all buffer blocks) in bytes
-func (ab *AudioBuffer) BufferSize() int {
-	return int(ab.BlockCount * ab.BlockSize)
-}
-
-func (ab *AudioBuffer) writerLoop() {
-	for {
-		select {
-		case i := <-ab.writer:
-			block := &ab.blocks[i]
-			ab.output.write(block.bytes, i)
-		case <-ab.closer:
-			return
-		}
-	}
-}
