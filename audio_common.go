@@ -27,8 +27,8 @@ type AudioBuffer struct {
 	maxWaited   time.Duration
 }
 
-// GetPrevReadLen returns the size of the last buffer chunk the system asked for in its audio callback
-func (ab *AudioBuffer) GetPrevReadLen() int {
+// GetPrevCallbackReadLen returns the size of the last buffer chunk the system asked for in its audio callback
+func (ab *AudioBuffer) GetPrevCallbackReadLen() int {
 	return ab.prevReadLen
 }
 
@@ -43,7 +43,7 @@ func (ab *AudioBuffer) GetMaxWaited() time.Duration {
 // WaitForPlaybackIfAhead waits until one buffer chunk length is yet to be processed by the OS.
 func (ab *AudioBuffer) WaitForPlaybackIfAhead() {
 	start := time.Now()
-	for ab.GetLenUnplayedData() > ab.prevReadLen {
+	for ab.GetUnplayedDataLen() > ab.prevReadLen {
 		ab.prevReadLen = <-ab.ReadLenNotifier
 	}
 	audioDiff := time.Now().Sub(start)
@@ -88,7 +88,7 @@ func (ab *AudioBuffer) GetLatestUnderflowCount() int {
 	return count
 }
 
-func (ab *AudioBuffer) GetLenUnplayedData() int {
+func (ab *AudioBuffer) GetUnplayedDataLen() int {
 	ab.bufMutex.Lock()
 	bLen := len(ab.buf)
 	ab.bufMutex.Unlock()
