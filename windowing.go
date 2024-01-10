@@ -23,11 +23,11 @@ type WindowState struct {
 	// Pix is the raw RGBA bytes of the framebuffer. The RenderMutex must be held when touching it.
 	Pix []byte
 
-	keyBuf       []ebiten.Key
-	keyCodeArray [256]bool
-	keyCodeMap   map[KeyCode]bool
-	keyCharArray [256]bool
-	keyCharMap   map[rune]bool
+	keyWorkingBuf []ebiten.Key
+	keyCodeArray  [256]bool
+	keyCodeMap    map[KeyCode]bool
+	keyCharArray  [256]bool
+	keyCharMap    map[rune]bool
 
 	updateCallback func(*WindowState)
 	renderCallback func(*WindowState)
@@ -70,17 +70,17 @@ func (s *WindowState) updateKey(key KeyCode, isPressed bool) {
 	}
 }
 func (s *WindowState) updateKeyboardState() {
-	s.keyBuf = s.keyBuf[:0]
-	s.keyBuf = inpututil.AppendJustReleasedKeys(s.keyBuf)
+	s.keyWorkingBuf = s.keyWorkingBuf[:0]
+	s.keyWorkingBuf = inpututil.AppendJustReleasedKeys(s.keyWorkingBuf)
 
-	for _, key := range s.keyBuf {
+	for _, key := range s.keyWorkingBuf {
 		s.updateKey(KeyCode(key), false)
 	}
 
-	s.keyBuf = s.keyBuf[:0]
-	s.keyBuf = inpututil.AppendJustPressedKeys(s.keyBuf)
+	s.keyWorkingBuf = s.keyWorkingBuf[:0]
+	s.keyWorkingBuf = inpututil.AppendJustPressedKeys(s.keyWorkingBuf)
 
-	for _, key := range s.keyBuf {
+	for _, key := range s.keyWorkingBuf {
 		s.updateKey(KeyCode(key), true)
 	}
 }
@@ -94,7 +94,9 @@ type Game struct {
 }
 
 func (g *Game) Update() error {
+	g.window.InputMutex.Lock()
 	g.window.updateKeyboardState()
+	g.window.InputMutex.Unlock()
 	if g.window.updateCallback != nil {
 		g.window.updateCallback(g.window)
 	}
