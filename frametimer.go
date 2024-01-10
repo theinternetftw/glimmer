@@ -11,14 +11,15 @@ const frameTimeLogSize = 300
 // a frame, and for checking frame stats
 type FrameTimer struct {
 	frameCount uint
-    rtimeLog []time.Duration
-    ftimeLog []time.Duration
+	rtimeLog   []time.Duration
+	ftimeLog   []time.Duration
 
 	statsTimer int
 
-	lastFlipTime time.Time
+	lastFlipTime   time.Time
 	lastRenderTime time.Time
 }
+
 // Makes a frame timer
 func MakeFrameTimer() FrameTimer {
 	return FrameTimer{
@@ -29,9 +30,9 @@ func MakeFrameTimer() FrameTimer {
 // WaitForFrametime sleeps until the frametime matches the desired interval
 func (f *FrameTimer) WaitForFrametime(timeGoalSecs float64) {
 
-    f.MarkRenderComplete()
+	f.MarkRenderComplete()
 
-    frametimeGoal := time.Duration(float64(time.Second)*timeGoalSecs)
+	frametimeGoal := time.Duration(float64(time.Second) * timeGoalSecs)
 
 	rDiff := time.Now().Sub(f.lastFlipTime)
 
@@ -44,16 +45,16 @@ func (f *FrameTimer) WaitForFrametime(timeGoalSecs float64) {
 		<-time.NewTimer(toWait).C
 	}
 
-    f.MarkFrameComplete()
+	f.MarkFrameComplete()
 }
 
 // TickFrame updates frame render stats as if the render was just completed
 func (f *FrameTimer) MarkRenderComplete() {
 	rdiff := time.Now().Sub(f.lastFlipTime)
-    f.rtimeLog = append(f.rtimeLog, rdiff)
-    if len(f.rtimeLog) > frameTimeLogSize {
-        f.rtimeLog = f.rtimeLog[1:]
-    }
+	f.rtimeLog = append(f.rtimeLog, rdiff)
+	if len(f.rtimeLog) > frameTimeLogSize {
+		f.rtimeLog = f.rtimeLog[1:]
+	}
 }
 
 // TickFrame updates frame render stats as if the render was just completed
@@ -62,10 +63,10 @@ func (f *FrameTimer) MarkFrameComplete() {
 	f.lastFlipTime = time.Now()
 
 	fdiff := time.Now().Sub(frameStart)
-    f.ftimeLog = append(f.ftimeLog, fdiff)
-    if len(f.ftimeLog) > frameTimeLogSize {
-        f.ftimeLog = f.ftimeLog[1:]
-    }
+	f.ftimeLog = append(f.ftimeLog, fdiff)
+	if len(f.ftimeLog) > frameTimeLogSize {
+		f.ftimeLog = f.ftimeLog[1:]
+	}
 	f.frameCount++
 	f.statsTimer++
 }
@@ -76,24 +77,24 @@ func (f *FrameTimer) MarkFrameComplete() {
 func (f *FrameTimer) PrintStatsEveryXFrames(numFrames int) {
 	if f.statsTimer >= numFrames {
 
-        var maxRTime time.Duration
-        var maxFTime time.Duration
-        var meanRTime time.Duration
-        var meanFTime time.Duration
-        for _, d := range f.rtimeLog {
-            if d > maxRTime {
-                maxRTime = d
-            }
-            meanRTime += d
-        }
-        for _, d := range f.ftimeLog {
-            if d > maxFTime {
-                maxFTime = d
-            }
-            meanFTime += d
-        }
-        meanRTime /= time.Duration(len(f.rtimeLog))
-        meanFTime /= time.Duration(len(f.ftimeLog))
+		var maxRTime time.Duration
+		var maxFTime time.Duration
+		var meanRTime time.Duration
+		var meanFTime time.Duration
+		for _, d := range f.rtimeLog {
+			if d > maxRTime {
+				maxRTime = d
+			}
+			meanRTime += d
+		}
+		for _, d := range f.ftimeLog {
+			if d > maxFTime {
+				maxFTime = d
+			}
+			meanFTime += d
+		}
+		meanRTime /= time.Duration(len(f.rtimeLog))
+		meanFTime /= time.Duration(len(f.ftimeLog))
 		fmt.Printf("meanRTime %.4f, meanFTime %.4f, maxRTime %.4f, maxFTime %.4f\n", meanRTime.Seconds(), meanFTime.Seconds(), maxRTime.Seconds(), maxFTime.Seconds())
 		f.statsTimer = 0
 	}
