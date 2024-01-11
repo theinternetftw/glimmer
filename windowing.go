@@ -31,6 +31,7 @@ type WindowState struct {
 
 	updateCallback func(*WindowState)
 	renderCallback func(*WindowState)
+	DrawNotifier   chan bool
 }
 
 // CopyKeyCharArray writes the current ascii keystate to dest
@@ -103,6 +104,12 @@ func (g *Game) Update() error {
 	return nil
 }
 func (g *Game) Draw(screen *ebiten.Image) {
+
+	select {
+	case g.window.DrawNotifier <- true:
+	default:
+	}
+
 	if g.window.renderCallback != nil {
 		g.window.renderCallback(g.window)
 	}
@@ -138,6 +145,7 @@ func InitDisplayLoop(opts InitDisplayLoopOptions) {
 		keyCharMap:     map[rune]bool{},
 		updateCallback: opts.UpdateCallback,
 		renderCallback: opts.RenderCallback,
+		DrawNotifier:   make(chan bool),
 	}
 
 	if opts.InitCallback != nil {
