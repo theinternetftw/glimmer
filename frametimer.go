@@ -85,7 +85,7 @@ func (f *FrameTimer) PrintStatsEveryXFrames(numFrames int) {
 
 		fmt.Printf("meanRender %.4f, meanFrame %.4f, maxRender %.4f, maxFrame %.4f\n",
 			stats.MeanRenderTime.Seconds(), stats.MeanFrameTime.Seconds(),
-			stats.MeanFrameTime.Seconds(), stats.MaxFrameTime.Seconds())
+			stats.MaxRenderTime.Seconds(), stats.MaxFrameTime.Seconds())
 		f.statsTimer = 0
 	}
 }
